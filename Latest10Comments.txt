@@ -1,0 +1,36 @@
+Scenario - Case #2
+================================================
+Write a query given the following data model:
+Query: Get list of Posts with latest 10 comments of each post authored by 'James Bond'
+
+WITH LatestComments AS (
+    SELECT
+        c.id AS comment_id,
+        c.content,
+        c.postid,
+        c.createdts,
+        ROW_NUMBER() OVER (PARTITION BY c.postid ORDER BY c.createdts DESC) AS rn
+    FROM
+        comment c
+)
+SELECT
+    p.id AS post_id,
+    p.name AS post_name,
+    a.name AS author_name,
+    c.comment_id,
+    c.content AS comment_content,
+    c.createdts AS comment_createdts,
+    u.name AS comment_user
+FROM
+    post p
+JOIN
+    author a ON p.authorid = a.id
+LEFT JOIN
+    LatestComments c ON p.id = c.postid AND c.rn <= 10
+LEFT JOIN
+    user u ON c.userid = u.id
+WHERE
+    a.name = 'James Bond'
+ORDER BY
+    p.id,
+    c.createdts DESC;
